@@ -1,98 +1,20 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-% %                   UNIVERSITAT DE VALÃˆNCIA                            %
-% %              Image Processing Laboratory (IPL)                        %
-% %               ASDC (Asim Science Data Center)                         %
-% %                                                                       %
-% %                Javier Navarro-GonzÃ¡lez               (nagonja@uv.es) %
-% %                                                                       %
-% %                      Dec.      2018                                   %
-% %                                                                       %
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This Script is an example for reading MMIA level0 cdf New Version Files
-% (After 2018DOY280)
-% This scrip is preconfigured with the trigger #13 UV or #132 Bergen 
-% TGF List DATE&TIME 2018 DOY 283 (l0 time 13:01:33.085950
-%
-% The Software makes an quick overview of the MMIA file
-%
-% 
-%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % GO INTO SCRIPT AND SET: %
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Path to the files
-% dirandfile='/home/navarro/TGF_20_NOV/mmiatriggeredobservationtm_observation_time_2018-10-10_13-01-32_observation_id_55591.cdf';%283
-% 
-% Path to the cdf_Matlab_patch
-%  addpath '/matlab_cdf363_patch-64'
-% 
-
-% MODIFICACIÓN JESÚS LÓPEZ 
-
-% CONCATENA TODOS LOS FICHEROS DE UN DIRECTORIO AL IGUAL QUE TODOS LOS
-% FRAMES DE LOS MISMOS FICHEROS
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%% COMENTARIO 2020-10-16 
-% ESTA VERSION EMPLEA EL "t_corrected_l1" y completa el tiempo según el
-% sample rate de 100 Khz. 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% Reset Values:
 clearvars
 clear all
 close all
+clc
 
-% SET cdf MATLAB patch
-% if isunix
-%     addpath '../matlab_cdf363_patch-64'
-% else
-     addpath '/Users/jaimemorandominguez/Desktop/TFG/Lectura_MMIA/cdf_patch/matlab_cdf370_patch'
-% end
 
-% Directorio datosa de MMIA a unir
-% str='E:\Doctorado\Academico\ASIM\MMIA\ASIM_mmia_UV_overview_2_IAA_v0\MMIA_DATA_new\191030\06_05_46\';
+addpath '/Users/jaimemorandominguez/Desktop/TFG/Lectura_MMIA/cdf_patch/matlab_cdf370_patch'
+
+% Directorio datos de MMIA a unir
 str='/Users/jaimemorandominguez/Desktop/TFG/Lectura_MMIA/190722/09_03_17';
-
-% ---------->LMA=load('E:\Doctorado\Academico\LMA\LMA viewer program\saved\LMA_191030_06_05_46.txt'); 
-% f_LMA=find(LMA(:,3)==0);
-% LMA(f_LMA,:)=[]; 
-% % GLM info
-% ---------->GLM=load('E:\UPC\ASIM\MMIA_Positive_CGs\Events\201111\GLM\output\GLM.txt'); 
-
-% % LIS INFO -  Opción 3 programa Icar.
-% ---------->load('E:\UPC\ASIM\MMIA_Positive_CGs\Events\201111\LIS\ISS_LIS_SC_V1.0_20201111_NQC_21914.mat');
-% load('F:\Doctorado\Academico\LMA\LMA viewer program\LMA_LIS\LIS_data\output\ISS_LIS_SC_V1.0_20200919_NQC_21105.mat');
-
-
-% %%%%%%%%%%%%%%%
-% % LINET
-% ---------->filename = 'E:\UPC\ASIM\MMIA_Positive_CGs\Events\201111\Linet\201111_00_43_17_Linet.txt';
-
-
-% EN CASO QUE LOS DATOS PROCESADOS DESDE PROGRAMA DE ÍCAR NO ESTÉN ORDENADOS EN TIEMPO 
-[~,idx] = sort(LIS_all(:,1));
-sor_LIS= LIS_all(idx,:);
-clear LIS_all
-LIS_all=sor_LIS;
-
 
 t_ajuste=0.15; % Tiempo de búsqueda = tiempo MMIA +/- t_ajuste
 
-d_lat_lon=10/111.111; % Delta de búsqueda alrededor del rayos del LMA. 
-
-
-% lis_sort para flashes
-% Flash 1-> lis_sort=0
-% Flash 2-> lis_sort=0
-% Flash 3-> lis_sort=0
-% Flash 4-> lis_sort=1
+d_lat_lon=10/111.111; % Delta de búsqueda alrededor del rayos del LMA.
 
 lis_sort=0; % Fuente de LIS para ajuste. 0=Valor de mayor radiance, =1, siguiente valor....
-glm_sort=0;  % Fuente de GLM para ajuste. 0=Valor de mayor energía, 1 siguiente valor mayor....
+glm_sort=0; % Fuente de GLM para ajuste. 0=Valor de mayor energía, 1 siguiente valor mayor....
 mmia_sort=0; 
 
 tresh_frame=100; % UMBRAL DE TRESHOLD PARA CADA FOTÓMETRO
@@ -102,7 +24,7 @@ files=dir(fullfile(folder_name,'*.cdf'));
 zz=1;
 n_files=length(files); 
 
-% Predefino las metrices de los fotones. 
+% Predefino las metrices de los fotones.
 PHOT1Data_all_tmp=[];
 PHOT2Data_all_tmp=[];
 PHOT3Data_all_tmp=[];
@@ -120,8 +42,6 @@ while zz<=n_files
     for nv=1:numvars
         eval([L.Variables{nv} '= double(DATA{nv});' ])
     end
-    
-    
     
     % Datos de la ISS
     fprintf('ISS data     lat: %s, lon: %s \n',num2str(latitude(1)),num2str(longitude(1)))
@@ -193,7 +113,7 @@ while zz<=n_files
         CHU1_pixel_latitude;
         CHU2_pixel_latitude;
         CHU2_pixel_longitude;
-      end % Fin del ciclo con solo CHU!    
+    end % Fin del ciclo con solo CHU!    
         for frame=1:length(CHU1Data_exists)
             
             if CHU1Data_exists(frame)==1 && CHU2Data_exists(frame)==1
@@ -237,7 +157,6 @@ while zz<=n_files
                 set(h, 'LineStyle','none');
                 title 'PHOT 1 (337.0)'
                 hold on
-                plot(LIS_all(flis_frame,4),LIS_all(flis_frame,3),'or')
                 plot(GLM(fglm_frame,3),GLM(fglm_frame,2),'+k')
                 
                 if exist('A_CHU2')
@@ -249,28 +168,15 @@ while zz<=n_files
                     set(h, 'LineStyle','none');
                     title 'CHU 2 (777.4)'
                 end
-
-                
-
                 imagenFOV1=zeros(1026,1056);
                 imagenFOV2=zeros(1026,1056);
             end
         end
                 
-                
-                if (t_btw_corrected_frame(:)~=0)
-
-                    
-                end
-                
-
-
+        if (t_btw_corrected_frame(:)~=0)
+        end
         zz=zz+1;  %% Finaliza concatenación de los fiecheros MMIA
-    
-
 end
-
-
 
 MMIA_all(:,1)=t_vectorL1;
 MMIA_all(:,2)=PHOT1Data_all_tmp';

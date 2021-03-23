@@ -7,8 +7,23 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
+###################################################
+##              USER INPUT DATA                  ##
+###################################################
 
-file_path = "/Users/jaimemorandominguez/Desktop/TFG/Pruebas_GLM/Salida/GLM_output_data_2.txt"
+file_path = "/Users/jaimemorandominguez/Desktop/TFG/Pruebas_GLM/Salida/GLM_output_data.txt"
+#min_lon = ?    # [deg]
+#max_lon = ?    # [deg]
+
+#min_lat = ?    # [deg]
+#min_lat = ?    # [deg]
+
+#start_time = 0      # [s]
+#end_time = 24*3600  # [s]
+
+###################################################
+##           END OF USER INPUT DATA              ##
+###################################################
 
 ########### Reading the .txt file and writing it in a table ###########
 
@@ -23,14 +38,14 @@ GLM_data = np.loadtxt(file_path, delimiter=' ')
 
 ########### Filling a new time-wise table with ordered time data ###########
 
-new_length = 1
-total_voids = 0;
-acumulated_voids = 0
-void_info = np.zeros((len(GLM_data),4))
-# 1st column: .txt row
+new_length = 1          # New length of the time-wise matrix
+acumulated_voids = 0    # Number of non-existing timesteps up to the current line
+repetition_count = 0    # Accounts for total repeted lines
+void_info = np.zeros((len(GLM_data),4))     # Matrix with special info for each line:
+# 1st column: .txt row number
 # 2nd column: void timesteps after that row
 # 3rd column: timestep lower than 0.002 s (0 or 1)
-# 4th column: Void timesteps before this line
+# 4th column: Accumulated void timesteps before this line
 
 # Updating new_length value to make a new table with 1st dimension being new_length
 
@@ -59,13 +74,35 @@ for i in range(1,len(GLM_data)):    # Checking for different time values and voi
             acumulated_voids = acumulated_voids + void_timesteps
             void_info[i][3] = acumulated_voids
             
-# Creating the new matrix
+    else:                                   # Same timestep as line before
+        repetition_count = repetition_count + 1
+        new_length = new_length + 1
+        void_info[i][3] = acumulated_voids
+            
+# Filling the new time-wise matrix
 
-GLM_complete_data = np.zeros((new_length,7))
+GLM_complete_data = np.zeros((new_length,7)) # New matrix with data with void lines for non-existing timesteps
+radiance = np.zeros((len(GLM_complete_data)-repetition_count,2)) # Time-radiance integration for plotting
 
 for i in range(0,len(GLM_data)):
-    if void_info[i,1] == 0:     # Lines of data with no timegaps just after them
-        GLM_complete_data[i,:] = GLM_data[i,:]
+    new_i = int(i + void_info[i,3])                    # Row position on the new matrix
+    GLM_complete_data[new_i,:] = GLM_data[i,:]         # Filling rows with existing data
+    
+    if void_info[i,1] != 0:   # Valid for lines with non-existing timesteps
+        counter = 1           # Adds 0.002s to every void line
+        for j in range(new_i+1, new_i+1+int(void_info[i,1])):
+            GLM_complete_data[j,0] = GLM_data[i,0] + counter * 0.002
+            GLM_complete_data[j,range(1,7)] = 0
+            counter = counter + 1
+
+radiance[0,:] = [GLM_complete_data[0,0],GLM_complete_data[0,6]]
+rad_counter = 0
+for i in range(1,len(GLM_complete_data)):
+    if GLM_complete_data[i,0] == GLM_complete_data[i-1,0]:
+        radiance[rad_counter,:] = [GLM_complete_data[i,0], radiance[rad_counter,1]+GLM_complete_data[i,6]]
+    else:
+        rad_counter = rad_counter + 1
+        radiance[rad_counter,:] = [GLM_complete_data[i,0],GLM_complete_data[i,6]]
         
 
 ########### REPRESENTATIONS ###########
@@ -83,7 +120,7 @@ plt.show()
 
 # Radiance vs time graph representation
 plt.figure()
-plt.bar(GLM_data[:,0],GLM_data[:,6],width=0.005)
+plt.plot(radiance[:,0],radiance[:,1])
 plt.grid('on')
 plt.title("Radiance VS Time")
 plt.xlabel('Time (second of the day) [s]')

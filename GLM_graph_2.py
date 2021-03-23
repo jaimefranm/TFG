@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
+font = {'family':'serif', 'serif': ['computer modern roman']}
+plt.rc('font',**font)
+plt.rc('text', usetex=True)
+
 ###################################################
 ##              USER INPUT DATA                  ##
 ###################################################
@@ -113,7 +117,7 @@ plt.scatter(GLM_data[:,2],GLM_data[:,1])
 plt.scatter(GLM_data[:,5],GLM_data[:,4],marker='x')
 plt.axis('equal')
 plt.grid('on')
-plt.title("Event grid")
+plt.title(r"\textbf{Event grid}")
 plt.xlabel('Longitude [deg]')
 plt.ylabel('Latitude [deg]')
 plt.show()
@@ -122,7 +126,7 @@ plt.show()
 plt.figure()
 plt.plot(radiance[:,0],radiance[:,1])
 plt.grid('on')
-plt.title("Radiance VS Time")
+plt.title(r"\textbf{Radiance VS Time}")
 plt.xlabel('Time (second of the day) [s]')
 plt.ylabel('Radiance [J]')
 plt.show()
